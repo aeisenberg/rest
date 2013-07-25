@@ -10,37 +10,27 @@
 
 	define(function (require) {
 
-		var interceptor, pathPrefix, find, lazyPromise, when;
+		var json, pathPrefix, find, lazyPromise, when;
 
-		interceptor = require('../../interceptor');
-		pathPrefix = require('../pathPrefix');
-		find = require('../../util/find');
-		lazyPromise = require('../../util/lazyPromise');
+		json = require('./json');
+		pathPrefix = require('../../../interceptor/pathPrefix');
+		find = require('../../../util/find');
+		lazyPromise = require('../../../util/lazyPromise');
 		when = require('when');
 
-		/**
-		 * TBD
-		 *
-		 * @param {Client} [client] client to wrap
-		 * @param {Client} [config.client=request.originator] the parent client to
-		 *   use when creating clients for a linked resources. Defaults to the
-		 *   request's originator if available, otherwise the current interceptor's
-		 *   client
-		 *
-		 * @returns {Client}
-		 */
-		return interceptor({
-			response: function (response, config, client) {
-				client = config.client || (response.request && response.request.originator) || client;
+		return {
 
-				find.findProperties(response, '_embedded', function (embedded, resource, name) {
+			read: function (str, response, client) {
+				var root = json.read.apply(json, arguments);
+
+				find.findProperties(root, '_embedded', function (embedded, resource, name) {
 					Object.keys(embedded).forEach(function (relationship) {
 						if (relationship in resource) { return; }
 						resource[relationship] = when(embedded[relationship]);
 					});
 					Object.defineProperty(resource, name, { value: embedded, configurable: true, writeable: true });
 				});
-				find.findProperties(response, '_links', function (links, resource, name) {
+				find.findProperties(root, '_links', function (links, resource, name) {
 					Object.keys(links).forEach(function (relationship) {
 						if (relationship in resource) { return; }
 						resource[relationship] = lazyPromise(function () {
@@ -60,10 +50,14 @@
 					});
 				});
 
-				return response;
-			}
-		});
+				return root;
+			},
 
+			write: function () {
+				return json.write.apply(json, arguments);
+			}
+
+		};
 	});
 
 }(
