@@ -59,6 +59,16 @@
 						assert.same('/resource', response.request.path);
 					});
 				}).otherwise(fail);
+			},
+			'should get a client for an relationship': function () {
+				function parent(request) {
+					return { request: request };
+				}
+
+				var resource = hal.read(JSON.stringify({ _links: { prop: { href: '/' } } }), {}, parent);
+				return resource.clientFor('prop')().then(function (response) {
+					assert.same('/', response.request.path);
+				}).otherwise(fail);
 			}
 		});
 
