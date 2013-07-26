@@ -21,6 +21,10 @@
 		hal = require('rest/mime/type/application/hal');
 		mime = require('rest/interceptor/mime');
 
+		function client(request) {
+			return { request: request };
+		}
+
 		buster.testCase('rest/mime/type/application/hal', {
 			'should stringify json': function () {
 				assert.equals('{"foo":"bar"}', hal.write({ foo: 'bar' }));
@@ -61,14 +65,50 @@
 				}).otherwise(fail);
 			},
 			'should get a client for an relationship': function () {
-				function parent(request) {
-					return { request: request };
-				}
-
-				var resource = hal.read(JSON.stringify({ _links: { prop: { href: '/' } } }), {}, parent);
+				var resource = hal.read(JSON.stringify({ _links: { prop: { href: '/' } } }), {}, { client: client });
 				return resource.clientFor('prop')().then(function (response) {
 					assert.same('/', response.request.path);
 				}).otherwise(fail);
+			},
+			'should safely warn when accessing a deprecated relationship': {
+				'': function () {
+					var console, resource;
+
+					console = {
+						warn: this.spy(),
+						log: this.spy()
+					};
+					resource = hal.read(JSON.stringify({ _links: { prop: { href: '/', deprecation: 'http://example.com/deprecation' } } }), {}, { client: client, console: console });
+
+					return resource.clientFor('prop')().then(function (response) {
+						assert.same('/', response.request.path);
+						assert.calledWith(console.warn, 'Relationship \'prop\' is deprecated, see http://example.com/deprecation');
+						refute.called(console.log);
+					}).otherwise(fail);
+				},
+				'falling back to log if warn is not availble': function () {
+					var console, resource;
+
+					console = {
+						log: this.spy()
+					};
+					resource = hal.read(JSON.stringify({ _links: { prop: { href: '/', deprecation: 'http://example.com/deprecation' } } }), {}, { client: client, console: console });
+
+					return resource.clientFor('prop')().then(function (response) {
+						assert.same('/', response.request.path);
+						assert.calledWith(console.log, 'Relationship \'prop\' is deprecated, see http://example.com/deprecation');
+					}).otherwise(fail);
+				},
+				'doing nothing if the console is unavailable': function () {
+					var console, resource;
+
+					console = {};
+					resource = hal.read(JSON.stringify({ _links: { prop: { href: '/', deprecation: 'http://example.com/deprecation' } } }), {}, { client: client, console: console });
+
+					return resource.clientFor('prop')().then(function (response) {
+						assert.same('/', response.request.path);
+					}).otherwise(fail);
+				}
 			}
 		});
 

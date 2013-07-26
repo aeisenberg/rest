@@ -20,8 +20,19 @@
 
 		return {
 
-			read: function (str, response, client) {
-				var root = json.read.apply(json, arguments);
+			read: function (str, response, opts) {
+				var root, client, console;
+
+				opts = opts || {};
+				client = opts.client;
+				console = opts.console || console;
+				root = json.read.apply(json, arguments);
+
+				function deprecationWarning(relationship, deprecation) {
+					if (deprecation && console && console.warn || console.log) {
+						(console.warn || console.log).call(console, 'Relationship \'' + relationship + '\' is deprecated, see ' + deprecation);
+					}
+				}
 
 				find.findProperties(root, '_embedded', function (embedded, resource, name) {
 					Object.keys(embedded).forEach(function (relationship) {
@@ -34,15 +45,19 @@
 					Object.keys(links).forEach(function (relationship) {
 						if (relationship in resource) { return; }
 						resource[relationship] = lazyPromise(function () {
-							return client({ path: links[relationship].href });
+							var link = links[relationship];
+							if (link.deprecation) { deprecationWarning(relationship, link.deprecation); }
+							return client({ path: link.href });
 						});
 					});
 					Object.defineProperty(resource, name, { value: links, configurable: true, writeable: true });
 					Object.defineProperty(resource, 'clientFor', {
 						value: function (relationship, clientOverride) {
+							var link = links[relationship];
+							if (link.deprecation) { deprecationWarning(relationship, link.deprecation); }
 							return pathPrefix(
 								clientOverride || client,
-								{ prefix: links[relationship].href }
+								{ prefix: link.href }
 							);
 						},
 						configurable: true,
