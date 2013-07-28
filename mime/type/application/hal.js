@@ -43,9 +43,9 @@
 				});
 				find.findProperties(root, '_links', function (links, resource, name) {
 					Object.keys(links).forEach(function (relationship) {
-						if (relationship in resource) { return; }
+						var link = links[relationship];
+						if (relationship in resource || link.templated === true) { return; }
 						resource[relationship] = lazyPromise(function () {
-							var link = links[relationship];
 							if (link.deprecation) { deprecationWarning(relationship, link.deprecation); }
 							return client({ path: link.href });
 						});

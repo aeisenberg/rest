@@ -109,6 +109,14 @@
 						assert.same('/', response.request.path);
 					}).otherwise(fail);
 				}
+			},
+			'should not index templated links': function () {
+				var resource = hal.read(JSON.stringify({ _links: {
+					prop: { href: '/', templated: 'true' },        // not-templated, must be boolean true
+					query: { href: '/{?query}', templated: true }  // templated
+				} }));
+				assert.isFunction(resource.prop.then);
+				refute(resource.query);
 			}
 		});
 
