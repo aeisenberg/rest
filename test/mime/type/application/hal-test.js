@@ -65,7 +65,7 @@
 				}).otherwise(fail);
 			},
 			'should get a client for an relationship': function () {
-				var resource = hal.read(JSON.stringify({ _links: { prop: { href: '/' } } }), {}, { client: client });
+				var resource = hal.read(JSON.stringify({ _links: { prop: { href: '/' } } }), { client: client });
 				return resource.clientFor('prop')().then(function (response) {
 					assert.same('/', response.request.path);
 				}).otherwise(fail);
@@ -78,7 +78,7 @@
 						warn: this.spy(),
 						log: this.spy()
 					};
-					resource = hal.read(JSON.stringify({ _links: { prop: { href: '/', deprecation: 'http://example.com/deprecation' } } }), {}, { client: client, console: console });
+					resource = hal.read(JSON.stringify({ _links: { prop: { href: '/', deprecation: 'http://example.com/deprecation' } } }), { client: client, console: console });
 
 					return resource.clientFor('prop')().then(function (response) {
 						assert.same('/', response.request.path);
@@ -92,7 +92,7 @@
 					console = {
 						log: this.spy()
 					};
-					resource = hal.read(JSON.stringify({ _links: { prop: { href: '/', deprecation: 'http://example.com/deprecation' } } }), {}, { client: client, console: console });
+					resource = hal.read(JSON.stringify({ _links: { prop: { href: '/', deprecation: 'http://example.com/deprecation' } } }), { client: client, console: console });
 
 					return resource.clientFor('prop')().then(function (response) {
 						assert.same('/', response.request.path);
@@ -103,7 +103,7 @@
 					var console, resource;
 
 					console = {};
-					resource = hal.read(JSON.stringify({ _links: { prop: { href: '/', deprecation: 'http://example.com/deprecation' } } }), {}, { client: client, console: console });
+					resource = hal.read(JSON.stringify({ _links: { prop: { href: '/', deprecation: 'http://example.com/deprecation' } } }), { client: client, console: console });
 
 					return resource.clientFor('prop')().then(function (response) {
 						assert.same('/', response.request.path);

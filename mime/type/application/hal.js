@@ -20,7 +20,7 @@
 
 		return {
 
-			read: function (str, response, opts) {
+			read: function (str, opts) {
 				var root, client, console;
 
 				opts = opts || {};

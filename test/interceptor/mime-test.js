@@ -134,8 +134,8 @@
 					assert.equals('application/vnd.com.example', response.headers['Content-Type']);
 					assert.equals('read: response entity', response.entity);
 
-					assert.calledWith(converter.read, 'response entity', response, { client: client });
-					assert.calledWith(converter.write, 'request entity', response.request, { client: client });
+					assert.calledWith(converter.read, 'response entity', { client: client, response: response });
+					assert.calledWith(converter.write, 'request entity', { client: client, request: response.request });
 				}).otherwise(fail);
 			},
 			'should have the default client as the parent by default': function () {
