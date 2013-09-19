@@ -12,11 +12,12 @@
 
 	define(function (require) {
 
-		var beget, origin, urlRE, absoluteUrlRE, fullyQualifiedUrlRE;
+		var beget, origin, urlRE, fileUrlRE, absoluteUrlRE, fullyQualifiedUrlRE;
 
 		beget = require('./util/beget');
 
 		urlRE = /([a-z][a-z0-9\+\-\.]*:)\/\/([^@]+@)?(([^:\/]+)(:([0-9]+))?)(\/[^?#]*)?(\?[^#]*)?(#\S*)?/i;
+		fileUrlRE = /([a-z][a-z0-9\+\-\.]*:)\/\/\/([^@]+@)?(([^:\/]+)(:([0-9]+))?)(\/[^?#]*)?(\?[^#]*)?(#\S*)?/i;
 		absoluteUrlRE = /^([a-z][a-z0-9\-\+\.]*:\/\/|\/)/i;
 		fullyQualifiedUrlRE = /([a-z][a-z0-9\+\-\.]*:)\/\/([^@]+@)?(([^:\/]+)(:([0-9]+))?)\//i;
 
@@ -180,8 +181,14 @@
 			 * @returns {Object} a 'window.location'-like object
 			 */
 			parts: function () {
-				var url, parts;
-				url = this.fullyQualify().build().match(urlRE);
+				var url, parts,
+					re = urlRE,
+					rawUrl = this.fullyQualify().build();
+
+				if (rawUrl.slice(0, 'file:///'.length) === 'file:///') {
+					re = fileUrlRE;
+				}
+				url = rawUrl.match(re);
 				parts = {
 					href: url[0],
 					protocol: url[1],
